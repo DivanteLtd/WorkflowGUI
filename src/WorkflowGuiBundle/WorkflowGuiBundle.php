@@ -16,16 +16,28 @@ namespace WorkflowGuiBundle;
 
 use Pimcore\Extension\Bundle\AbstractPimcoreBundle;
 use Pimcore\Extension\Bundle\Traits\PackageVersionTrait;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use WorkflowGuiBundle\Compiler\WorkflowPass;
 
+/**
+ * Class WorkflowGuiBundle
+ * @package WorkflowGuiBundle
+ */
 class WorkflowGuiBundle extends AbstractPimcoreBundle
 {
     use PackageVersionTrait;
 
+    /**
+     * @return string
+     */
     protected function getComposerPackageName(): string
     {
         return 'dpfaffenbauer/workflow-gui';
     }
 
+    /**
+     * @return array|\Pimcore\Routing\RouteReferenceInterface[]|string[]
+     */
     public function getJsPaths()
     {
         return [
@@ -36,10 +48,21 @@ class WorkflowGuiBundle extends AbstractPimcoreBundle
         ];
     }
 
+    /**
+     * @return array|\Pimcore\Routing\RouteReferenceInterface[]|string[]
+     */
     public function getCssPaths()
     {
         return [
             '/bundles/workflowgui/css/workflow.css'
         ];
+    }
+
+    /**
+     * @param ContainerBuilder $container
+     */
+    public function build(ContainerBuilder $container) {
+        $container->addCompilerPass(new WorkflowPass());
+        parent::build($container);
     }
 }

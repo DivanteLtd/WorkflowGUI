@@ -11,7 +11,7 @@ services:
 
     WorkflowGuiBundle\EventListener\WorkflowListener:
         tags:
-            - { name: kernel.event_subscriber }
+            - { name: kernel.event_subscriber, event: workflow.enter }
 
     workflow_gui.validation_handler.block:
         class: WorkflowGuiBundle\Validation\Handler\BlockHandler

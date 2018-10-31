@@ -19,7 +19,11 @@ namespace WorkflowGuiBundle\EventListener;
 use Pimcore\Event\Model\WorkflowEvent;
 use Pimcore\Event\WorkflowEvents;
 use Pimcore\Model\DataObject\Concrete;
+use Pimcore\Model\Workflow;
+use Pimcore\Workflow\Manager;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Workflow\Event\Event;
+use Symfony\Component\Workflow\Registry;
 use WorkflowGuiBundle\Validation\ValidationManager;
 
 class WorkflowListener implements EventSubscriberInterface
@@ -29,12 +33,15 @@ class WorkflowListener implements EventSubscriberInterface
      */
     protected $validationManager;
 
+    protected $workflowRegistry;
+
     /**
      * @param ValidationManager $validationManager
      */
-    public function __construct(ValidationManager $validationManager)
+    public function __construct(ValidationManager $validationManager, Registry $registry)
     {
         $this->validationManager = $validationManager;
+        $this->workflowRegistry = $registry;
     }
 
     /**
@@ -43,7 +50,7 @@ class WorkflowListener implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            WorkflowEvents::PRE_ACTION => 'onPreAction',
+            'workflow.enter' => 'onPreAction',
         ];
     }
 
@@ -51,13 +58,15 @@ class WorkflowListener implements EventSubscriberInterface
      * @param WorkflowEvent $event
      * @throws \Exception
      */
-    public function onPreAction(WorkflowEvent $event)
+    public function onPreAction(Event $event)
     {
-        $manager = $event->getWorkflowManager();
-        $element = $manager->getElement();
-
+        $element = $event->getSubject();
+        if (!array_key_exists('id', $event->getTransition()->getOptions())) {
+            return;
+        }
+        $workflow = Workflow::getById($event->getTransition()->getOptions()['id']);
         if ($element instanceof Concrete) {
-            if (!$this->validationManager->isValid($manager)) {
+            if (!$this->validationManager->isValid($workflow, $event)) {
                 $errors = $this->validationManager->getErrors();
                 throw new \Exception(implode('<br>', $errors));
             }

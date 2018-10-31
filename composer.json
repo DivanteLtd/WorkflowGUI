@@ -21,7 +21,7 @@
     }
   ],
   "require": {
-    "pimcore/pimcore": ">=5.0 <5.5"
+    "pimcore/pimcore": ">=5.5"
   },
   "autoload": {
     "psr-4": {

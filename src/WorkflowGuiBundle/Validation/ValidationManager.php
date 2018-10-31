@@ -19,7 +19,9 @@ namespace WorkflowGuiBundle\Validation;
 use Pimcore\Model\DataObject\AbstractObject;
 use Pimcore\Model\DataObject\ClassDefinition;
 use Pimcore\Model\DataObject\Concrete;
+use Pimcore\Model\Workflow;
 use Pimcore\WorkflowManagement\Workflow\Manager as WorkflowManager;
+use Symfony\Component\Workflow\Event\Event;
 
 class ValidationManager implements DependencyInjection\ServiceLocatorAwareInterface
 {
@@ -35,16 +37,18 @@ class ValidationManager implements DependencyInjection\ServiceLocatorAwareInterf
     }
 
     /**
-     * @param WorkflowManager $workflowManager
+     * @param Workflow $workflowManager
+     * @param Event    $event
      * @return bool
      */
-    public function isValid(WorkflowManager $workflowManager): bool
+    public function isValid(Workflow $workflow, Event $event): bool
     {
+
         $this->setErrors([]);
 
-        $object = $this->getObject($workflowManager);
+        $object = $event->getSubject();
         $class = $object->getClass();
-        $params = $this->getParams($workflowManager, (int) $class->getId());
+        $params = $this->getParams($workflow, $event);
 
         foreach ($params as $fieldName => $fieldParams) {
             $field = $this->getFieldDefinition($class, $fieldName);
@@ -130,12 +134,12 @@ class ValidationManager implements DependencyInjection\ServiceLocatorAwareInterf
      * @param int $classId
      * @return array
      */
-    protected function getParams(WorkflowManager $workflowManager, int $classId): array
+    protected function getParams(Workflow $workflow, Event $event): array
     {
         $params = [];
-
-        $actionName = $workflowManager->getActionData()['action'];
-        $action = $workflowManager->getWorkflow()->getActionConfig($actionName) ?? [];
+        $classId = $event->getSubject()->getClassId();
+        $actionName = $event->getTransition()->getName();
+        $action = $workflow->getActionConfig($actionName) ?? [];
         $validation = $action['validation'] ?? [];
 
         $rules = [];

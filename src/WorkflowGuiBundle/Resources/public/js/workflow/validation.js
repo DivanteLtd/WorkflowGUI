@@ -268,7 +268,11 @@ pimcore.plugin.workflowgui.validation = Class.create({
     },
 
     getChecked: function (classId) {
+        if (!this.record.get('validation')) {
+            this.record.set('validation', []);
+        }
         var validation = this.record.get('validation');
+
         for (var i = 0; i < validation.length; i++) {
             if (validation[i].classId == classId) {
                 return validation[i].rules;
@@ -278,6 +282,7 @@ pimcore.plugin.workflowgui.validation = Class.create({
     },
 
     save: function (classId, checked) {
+        console.log(classId);
         var rules = [];
         for (var i = 0; i < checked.length; i++) {
             rules.push(checked[i].get('value'));
@@ -291,6 +296,7 @@ pimcore.plugin.workflowgui.validation = Class.create({
                 break;
             }
         }
+        console.log(this.record.get('validation'));
     },
 
     show: function () {
